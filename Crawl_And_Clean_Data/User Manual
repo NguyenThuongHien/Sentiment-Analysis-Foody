@@ -1,0 +1,5 @@
++Cài 1 trình biên dịch Python bất kì như Pycharm,Anaconda( Anaconda có cài sẵn các thư viện cần thiết như numpy,scipy)
++Install Selenium
++Tải chromedriver( trong thư mục này có sẵn chromedriver.exe - chạy nó )
++...Code tiếp để crawl 1 cách tự động từ foody.vn , dựa vào điểm và phân loại là tích cực- tiêu cực- trung tính, lưu vào 3 file ứng: positives.txt
+negatives.txt,neurals.txt
