@@ -1,0 +1,3 @@
+-Tach tu tokenizer tieng Viet
+-Bieu dien tu thanh vector: Word2vec
+-Fasttext
