@@ -1,0 +1,4 @@
+Use Selenium to crawl
+link introduction: 
+ + get , and find HTML element with attribute class,id,......:https://selenium-python.readthedocs.io/locating-elements.html
+ +Handling action event as click,double click , hold on, scroll....: https://www.grazitti.com/resources/articles/handling-action-events-using-webdriver/

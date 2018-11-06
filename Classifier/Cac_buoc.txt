@@ -1,0 +1,5 @@
+
+-Load dữ liệu từ thư mục vào
+-Tách từ
+-Word Embbeding
+-Tiền xử lý dữ liệu : xử lý từ đồng nghĩa, sai chính tả,...
