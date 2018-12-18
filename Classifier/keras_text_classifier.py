@@ -1,4 +1,5 @@
 import numpy as npy
+import pandas
 import keras
 from  keras.models import Sequential,load_model
 from keras.layers import Dense,LSTM,Bidirectional,Dropout
@@ -58,11 +59,12 @@ class LSTM_text_Classifier(object):
                       metrics=['accuracy'])
 		return model
 		pass
-	def embedding_sentences(self,sentences,max_length=20):
+	def embedding_sentences(self,sentences,max_length=100):
 		embed_sentences = []
 		for sentence in sentences:
 			embed_sent = []
 			for word in sentence:
+				if word.strip()=='': continue
 				if((self.synonym is not None) and (word in self.synonym)):
 					embed_sent.append(self.word2vec[self.synonym[word].lower()])
 				elif(word.lower() in self.word2vec):
@@ -89,9 +91,9 @@ class LSTM_text_Classifier(object):
 		X = self.tokenize_sentences(X)
 		X = self.embedding_sentences(X, max_length=self.max_length)
 		y = self.predict(npy.array(X))
-		print(y)
+		# print(y)
 		y = npy.argmax(y, axis=1)
-		print(y)
+		# print(y)
 		labels = []
 		for lab_ in y:
 			if label_dict is None:
@@ -124,7 +126,7 @@ class LSTM_text_Classifier(object):
 		X = self.embedding_sentences(X,max_length=self.max_length)
 		return npy.array(X),npy.array(y)
 		pass
-	# Why static method?
+
 	@staticmethod
 	def load_method(path):
 		with open(path,'r',encoding='utf-8') as fr:
@@ -146,7 +148,7 @@ class BidirectionalLSTM_text_classifier(LSTM_text_Classifier):
                       optimizer=keras.optimizers.Adadelta(),
                       metrics=['accuracy'])
 		return model
-def test():
+def training_model(model_path,list_data_train,label_dict,max_length,no_epoch=6,no_class=2):
 	# append PATHPYTHON with '../' ('Sentiment Analysis')
 	import sys
 	from sys import path
@@ -161,20 +163,64 @@ def test():
 	sym_dict = get_synonym_dict('../data/sentiment/synonym.txt')
 	# init class text_classifier
 	text_classifier = BidirectionalLSTM_text_classifier(tokenizer=tokenizer, word2vec=word2vec_model.wv,
-                                                        model_path='../pretrained_models/pretrained_sentiment_model.h5',
-                                                        max_length=20, no_epoch=10,
+                                                        model_path=model_path,
+                                                        max_length=max_length, no_epoch=no_epoch,no_class=no_class,
                                                         synonym=sym_dict)
 	# load data to X,y format from file
-	X, y = text_classifier.load_data(['../data/sentiment/positives.txt',
-                                           '../data/sentiment/negatives.txt'],
-                                           load_method=text_classifier.load_method)
+	X, y = text_classifier.load_data(list_data_train,load_method=text_classifier.load_method)
 	# train available data
-	# text_classifier.train(X,y)
-	# classifier input comment
+	text_classifier.train(X,y)
+	pass
+
+def train_sentiment():
+	path_save_model='../pretrained_models/pretrained_sentiment_model1.h5'
+	data_train_set = ['../data/sentiment/positives.txt',
+                                           '../data/sentiment/negatives.txt']
 	label_dict = {0: 'tích cực', 1: 'tiêu cực'}
-	test_sentences = ['Dở thế', 'Hay thế', 'phim chán thật', 'nhảm quá','thất vọng','kém cỏi']
-	labels=text_classifier.classify(test_sentences,label_dict)
-	print(labels)
+	no_epoch=15
+	no_class=2
+	training_model(path_save_model,data_train_set,label_dict,50,no_epoch,no_class)
+	pass
+def train_aspect():
+	path_save_model='../pretrained_models/pretrained_aspect_model.h5'
+	data_train_set = ['../data/aspect/irrelevant.txt','../data/aspect/quality.txt','../data/aspect/price.txt',
+	                                        '../data/aspect/position.txt',
+                                            '../data/aspect/space.txt','../data/aspect/service.txt',]
+	label_dict = {0: 'Không liên quan', 1: 'Chất lượng',2: 'Giá cả',3: 'Vị trí',4: 'Không gian',5: 'Phục vụ'}
+	no_epoch=15
+	no_class=6
+	training_model(path_save_model,data_train_set,label_dict,100,no_epoch,no_class)
+	pass
+def predict(label_dict,sentence_set,model_path,max_length):
+	# append PATHPYTHON with '../' ('Sentiment Analysis')
+	import sys
+	from sys import path
+	from os.path import dirname as dir
+	path.append(dir(path[0]))
+	# import Word_Embedding and Word_Segmentation
+	from Word_Embedding import word_to_vector
+	from gensim.models import Word2Vec
+	from Word_Segmentation.word_segmentation import Tokenizer
+	tokenizer = Tokenizer()
+	word2vec_model = Word2Vec.load('../pretrained_models/pretrained_word2vec.bin')
+	sym_dict = get_synonym_dict('../data/sentiment/synonym.txt')
+	# init class text_classifier
+	text_classifier = BidirectionalLSTM_text_classifier(tokenizer=tokenizer, word2vec=word2vec_model.wv,
+                                                        model_path=model_path,
+                                                        max_length=max_length, no_epoch=15,
+                                                        synonym=sym_dict)
+
+	labels=text_classifier.classify(sentence_set,label_dict)
+	return labels
+	pass
+
+def test():
+	label_dict={0: 'tích cực', 1: 'tiêu cực'}
+	# label_dict = {0: 'Không liên quan', 1: 'Chất lượng',2: 'Giá cả',3: 'Vị trí',4: 'Không gian',5: 'Phục vụ'}
+	sentence_set=['nhà hàng được trang trí rất đẹp thoáng mát rộng rãi','nhân viên rất nhanh nhẹn hoạt bát']
+	# model_path= '../pretrained_models/pretrained_aspect_model.h5'
+	model_path= '../pretrained_models/pretrained_sentiment_model1.h5'
+	print(predict(label_dict,sentence_set,model_path,100))
 	pass
 if __name__ == '__main__':
 	test()
